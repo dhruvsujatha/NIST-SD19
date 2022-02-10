@@ -1,11 +1,8 @@
 # %tensorflow_version 2.x  # this line is not required unless you are in a notebook
 import tensorflow as tf
-
 from tensorflow.keras import datasets, layers, models
 from keras.datasets import mnist
-import matplotlib.pyplot as plt
 import numpy as np
-# from google.colab import files
 
 (train_images, train_y), (test_images, test_y) = mnist.load_data()
 np.reshape(train_images, (60000, 28, 28, 1))
@@ -15,12 +12,6 @@ print(np.shape(train_images))
 
 # Normalize pixel values to be between 0 and 1
 train_images, test_images = train_images / 255.0, test_images / 255.0
-
-IMG_INDEX = 7  # change this to look at other images
-
-plt.imshow(train_images[IMG_INDEX], cmap=plt.cm.binary)
-# plt.x_label(class_names[train_labels[IMG_INDEX][0]])
-plt.show()
 
 model = models.Sequential()
 model.add(layers.Conv2D(16, (3, 3), activation='relu', input_shape=(28, 28, 1)))
