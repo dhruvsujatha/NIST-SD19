@@ -3,12 +3,14 @@ import tensorflow as tf
 from tensorflow.keras import datasets, layers, models
 from keras.datasets import mnist
 import numpy as np
+from PIL import Image as im
 
 (train_images, train_y), (test_images, test_y) = mnist.load_data()
-np.reshape(train_images, (60000, 28, 28, 1))
-np.reshape(test_images, (10000, 28, 28, 1))
-print(np.shape(train_images))
+np.reshape(train_images, (60000, 28, 28))
+np.reshape(test_images, (10000, 28, 28))
 
+print(np.shape(train_images), np.shape(train_y))
+print(np.shape(test_images), np.shape(test_y))
 
 # Normalize pixel values to be between 0 and 1
 train_images, test_images = train_images / 255.0, test_images / 255.0
