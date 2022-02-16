@@ -38,4 +38,5 @@ history = model.fit(train_images, train_y, epochs=4,
                     validation_data=(test_images, test_y))
 
 test_loss, test_acc = model.evaluate(test_images,  test_y, verbose=2)
+
 print(str(test_acc * 100) + "  %")

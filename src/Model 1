@@ -12,8 +12,16 @@ pixels = 50
 bins = 62
 mid_layer = 750
 training_iters = 10
-learning_rate = 0.001
+learning_rate = 0.005
 batch_size = 512
+
+
+class LearningRateReducerCb(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        old_lr = self.model.optimizer.lr.read_value()
+        new_lr = old_lr * 0.5
+        print("\nEpoch: {}. Reducing Learning Rate from {} to {}".format(epoch, old_lr, new_lr))
+        self.model.optimizer.lr.assign(new_lr)
 
 
 def convert_to_char(value):
@@ -69,7 +77,7 @@ model.add(layers.Conv2D(pixels, (3, 3), activation='relu', input_shape=(pixels, 
 model.add(layers.MaxPooling2D((2, 2)))
 model.add(layers.Conv2D(2 * pixels, (3, 3), activation='relu'))
 model.add(layers.MaxPooling2D((2, 2)))
-model.add(layers.Conv2D(2 * pixels, (3, 3), activation='relu'))
+# model.add(layers.Conv2D(2 * pixels, (3, 3), activation='relu'))
 model.summary()
 
 model.add(layers.Flatten())
@@ -77,17 +85,35 @@ model.add(layers.Dense(2 * pixels, activation='relu'))
 model.add(layers.Dense(62))
 model.summary()
 
-opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+opt = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 model.compile(optimizer=opt,
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
-# model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-history = model.fit(training_data, training_labels, epochs=2,
+history = model.fit(training_data, training_labels, callbacks=[LearningRateReducerCb()], epochs=3,
                     validation_data=(test_data, test_labels))
 
 test_loss, test_acc = model.evaluate(test_data, test_labels, verbose=2)
-print(str(test_acc * 100) + "  %")
+print("Accuracy = " + str(np.round(test_acc * 100, 3)) + " %")
+
+wt = open('C:/NN/NIST SD 19/Weights, Biases/weights.csv', 'w')
+bs = open('C:/NN/NIST SD 19/Weights, Biases/biases.csv', 'w')
+
+for idx, i in enumerate(model.layers):
+    if isinstance(i, layers.Conv2D) or isinstance(i, layers.Dense):
+        weights = i.get_weights()[0]
+        biases = i.get_weights()[1]
+        weights = weights.flatten()
+        biases = biases.flatten()
+        print("weights: ", weights.shape)
+        print("biases: ", biases.shape)
+        wt.write(','.join(map(str, weights.tolist()))+"\n")
+        bs.write(','.join(map(str, biases.tolist()))+"\n")
+
+# for i in range(7):
+#     print(model.layers[i].weights)
+#     print(model.layers[i].bias.numpy())
+#     print(model.layers[i].bias_initializer)
 
 # New method starts
 
