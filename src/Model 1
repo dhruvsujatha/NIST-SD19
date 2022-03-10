@@ -4,22 +4,25 @@ from PIL import Image as im
 import tensorflow as tf
 from tensorflow.keras import datasets, layers, Sequential, models
 import numpy as np
+import cv2
+from imutils.contours import sort_contours
+import imutils
 
-train_data_points = 800
-test_data_points = 200
+train_data_points = 43
+test_data_points = 12
 total_data_points = train_data_points + test_data_points
-pixels = 50
+pixels = 100
 bins = 62
 mid_layer = 750
 training_iters = 10
-learning_rate = 0.005
+learning_rate = 8e-4
 batch_size = 512
 
 
 class LearningRateReducerCb(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
         old_lr = self.model.optimizer.lr.read_value()
-        new_lr = old_lr * 0.5
+        new_lr = old_lr * 0.9
         print("\nEpoch: {}. Reducing Learning Rate from {} to {}".format(epoch, old_lr, new_lr))
         self.model.optimizer.lr.assign(new_lr)
 
@@ -27,27 +30,29 @@ class LearningRateReducerCb(tf.keras.callbacks.Callback):
 def convert_to_char(value):
     if -1 < value < 10:
         return int(value)
-    if 9 < value < 36:
+    elif 9 < value < 36:
         return chr(int(value + 55))
-    if 35 < value < 62:
+    elif 35 < value < 62:
         return chr(int(value + 61))
+    else:
+        return '*'
 
 
 images = []
 inPath = "C:/NN/NIST SD 19/DataSet/"
-i = 0
-for i in range(48, 123):
-    p = np.round(((i - 48) / 74) * 100, 2)
+folder_path = "C:/NN/Dataset 4/Img/"
+for i in range(bins):
+    p = np.round((i / 61) * 100, 2)
     print('\r''Data loading:', p, '%', end='')
-    for j in range(total_data_points):
-        if 47 < i < 58 or 64 < i < 91 or 96 < i < 123:
-            input_path = inPath + str(i) + '-' + str(j) + '.png'
-            img = im.open(input_path)
-            img = img.resize((pixels, pixels))
-            img = img.convert('L')
-            img_array = np.asarray(img)
-            images.append(img_array)
-            img.close()
+    for j in range(train_data_points + test_data_points):
+        filename = folder_path + "img" + str(i + 1).zfill(3) + "-" + str(j + 1).zfill(3) + ".png"
+        img = im.open(filename)
+        img = img.resize((pixels, pixels))
+        img = img.convert('L')
+        img_array = np.asarray(img)
+        images.append(img_array)
+        img.close()
+        img.close()
 
 print('\n')
 images_array = np.reshape(images, (bins, total_data_points, pixels, pixels))
@@ -89,30 +94,77 @@ model.compile(optimizer=opt,
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
 
-history = model.fit(training_data, training_labels, callbacks=[LearningRateReducerCb()], epochs=3,
+history = model.fit(training_data, training_labels, callbacks=[LearningRateReducerCb()], epochs=5,
                     validation_data=(test_data, test_labels))
 
 test_loss, test_acc = model.evaluate(test_data, test_labels, verbose=2)
 print("Accuracy = " + str(np.round(test_acc * 100, 3)) + " %")
 
-wt = open('C:/NN/NIST SD 19/Weights, Biases/weights.csv', 'w')
-bs = open('C:/NN/NIST SD 19/Weights, Biases/biases.csv', 'w')
+weights = model.get_weights()
 
-for idx, i in enumerate(model.layers):
-    if isinstance(i, layers.Conv2D) or isinstance(i, layers.Dense):
-        weights = i.get_weights()[0]
-        biases = i.get_weights()[1]
-        weights = weights.flatten()
-        biases = biases.flatten()
-        print("weights: ", weights.shape)
-        print("biases: ", biases.shape)
-        wt.write(','.join(map(str, weights.tolist()))+"\n")
-        bs.write(','.join(map(str, biases.tolist()))+"\n")
+# wt = open('C:/NN/NIST SD 19/Weights, Biases/weights.csv', 'w')
+# bs = open('C:/NN/NIST SD 19/Weights, Biases/biases.csv', 'w')
 
-# for i in range(7):
-#     print(model.layers[i].weights)
-#     print(model.layers[i].bias.numpy())
-#     print(model.layers[i].bias_initializer)
+gray = cv2.imread("C:/NN/NIST SD 19/Words/Test 0.jpg", 0)
+# gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+edged = cv2.Canny(blurred, 100, 200)
+# cv2.imshow("edged", edged)
+# cv2.waitKey(0)
+cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+cnts = imutils.grab_contours(cnts)
+cnts = sort_contours(cnts, method="left-to-right")[0]
+
+chars = ""
+
+print("Now predicting")
+iteration = 0
+for c in cnts:
+    iteration = iteration + 1
+    (x, y, w, h) = cv2.boundingRect(c)
+    if (w >= 5 and w <= 150) and (h >= 15 and h <= 120):
+        roi = gray[y:y + h, x:x + w]
+
+        thresh = cv2.threshold(roi, 0, 255,
+                               cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+        (tH, tW) = thresh.shape
+        if tW > tH:
+            thresh = imutils.resize(thresh, width=32)
+        else:
+            thresh = imutils.resize(thresh, height=32)
+
+        (tH, tW) = thresh.shape
+        dX = int(max(0, 32 - tW) / 2.0)
+        dY = int(max(0, 32 - tH) / 2.0)
+        padded = cv2.copyMakeBorder(thresh, top=dY, bottom=dY,
+                                    left=dX, right=dX, borderType=cv2.BORDER_CONSTANT,
+                                    value=(0, 0, 0))
+        padded = cv2.resize(padded, (0.6 * pixels, 0.6 * pixels))
+        padded = cv2.copyMakeBorder(padded, 0.2 * pixels, 0.2 * pixels, 0.2 * pixels, 0.2 * pixels, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        padded = ~padded
+        padded = padded.astype("float32") / 255.0
+        padded = np.expand_dims(padded, axis=-1)
+        # padded = cv2.resize(padded, (50, 50, 1, 1))
+        cv2.imshow("Char", padded)
+        cv2.waitKey(0)
+        print(np.shape(padded))
+        padded = np.expand_dims(padded, axis=0)
+        predictions = model.predict(padded)
+        print(np.argmax(predictions))
+        print(convert_to_char(np.argmax(predictions)))
+        chars = chars + convert_to_char(np.argmax(predictions))
+
+print(chars)
+# for idx, i in enumerate(model.layers):
+#     if isinstance(i, layers.Conv2D) or isinstance(i, layers.Dense):
+#         weights = i.get_weights()[0]
+#         biases = i.get_weights()[1]
+#         weights = weights.flatten()
+#         biases = biases.flatten()
+#         print("weights: ", weights.shape)
+#         print("biases: ", biases.shape)
+#         wt.write(','.join(map(str, weights.tolist()))+"\n")
+#         bs.write(','.join(map(str, biases.tolist()))+"\n")
 
 # New method starts
 

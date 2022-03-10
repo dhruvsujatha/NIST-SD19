@@ -1,21 +1,21 @@
 from PIL import Image as im
+import numpy as np
 
-folder_path = "C:/NN/NIST SD 19/by_class/"
-saving_folder_path = "C:/NN/NIST SD 19/DataSet/"
+folder_path = "C:/NN/Dataset 4/Modified/"
+saving_folder_path = "C:/NN/Dataset 4/Modified/"
 main_iteration = 0
 pixels = 50
 
-for i in range(47, 123):
-    print(main_iteration)
-    if 47 < i < 58 or 64 < i < 91 or 96 < i < 123:
-        to_get_folder_path = folder_path + str(i) + "/train_" + str(hex(i))[2:4]
-        for j in range(1900):
-            filename = to_get_folder_path + "/train_" + str(hex(i))[2:4] + "_" + format(j, '0' + str(5)) + ".png"
-            image = im.open(filename)
-            image = image.resize((pixels, pixels))
-            saving_filename = saving_folder_path + str(i) + "-" + str(j) + ".png"
-            image.save(saving_filename)
-            image.close()
-    main_iteration = main_iteration + 1
+for i in range(62):
+    p = np.round((i / 61) * 100, 2)
+    print('\r''Data loading:', p, '%', end='')
+    for j in range(55):
+        filename = folder_path + "img" + str(i + 1).zfill(3) + "-" + str(j + 1).zfill(3) + ".png"
+        image = im.open(filename)
+        image = image.transpose(im.ROTATE_270)
+        # image = image.resize((pixels, pixels))
+        saving_filename = saving_folder_path + "img" + str(i + 1).zfill(3) + "-" + str(j + 166).zfill(3) + ".png"
+        image.save(saving_filename)
+        image.close()
 
 
