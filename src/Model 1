@@ -8,8 +8,8 @@ import cv2
 from imutils.contours import sort_contours
 import imutils
 
-train_data_points = 800
-test_data_points = 216
+train_data_points = 1600
+test_data_points = 300
 total_data_points = train_data_points + test_data_points
 pixels = 50
 bins = 62
@@ -40,23 +40,28 @@ def convert_to_char(value):
 
 
 images = []
-# inPath = "C:/NN/NIST SD 19/DataSet/"
-folder_path = "C:/NN/Dataset 4/"
-for i in range(bins):
-    for j in range(total_data_points):
+folder_path = "C:/NN/NIST SD 19/DataSet/"
+for i in range(48, 123):
+    if 47 < i < 58 or 64 < i < 91 or 96 < i < 123:
+        for j in range(total_data_points):
+            total_iterations = bins * total_data_points
+            p = -1
+            if 47 < i < 58:
+                p = np.round((((i - 48) * total_data_points + j) / total_iterations) * 100, 2)
+            elif 64 < i < 91:
+                p = np.round((((i - 55) * total_data_points + j) / total_iterations) * 100, 2)
+            elif 96 < i < 123:
+                p = np.round((((i - 61) * total_data_points + j) / total_iterations) * 100, 2)
+            print('\r''Data loading:', p, '%', end='')
 
-        total_iterations = bins * total_data_points
-        p = np.round(((i * total_data_points + j) / total_iterations) * 100, 2)
-        print('\r''Data loading:', p, '%', end='')
-
-        filename = folder_path + "img" + str(i + 1).zfill(2) + "-" + str(j + 1).zfill(4) + ".png"
-        img = im.open(filename)
-        img = img.resize((pixels, pixels))
-        img = img.convert('L')
-        img_array = np.asarray(img)
-        images.append(img_array)
-        img.close()
-        img.close()
+            filename = folder_path + str(i) + "-" + str(j) + ".png"
+            img = im.open(filename)
+            img = img.resize((pixels, pixels))
+            img = img.convert('L')
+            img_array = np.asarray(img)
+            images.append(img_array)
+            img.close()
+            img.close()
 
 print('\n')
 images_array = np.reshape(images, (bins, total_data_points, pixels, pixels))
