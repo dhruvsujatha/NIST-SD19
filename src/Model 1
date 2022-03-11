@@ -148,8 +148,8 @@ for c in cnts:
         padded = cv2.copyMakeBorder(thresh, top=dY, bottom=dY,
                                     left=dX, right=dX, borderType=cv2.BORDER_CONSTANT,
                                     value=(0, 0, 0))
-        padded = cv2.resize(padded, (pixels, pixels))
-        # padded = cv2.copyMakeBorder(padded, 0.2 * pixels, 0.2 * pixels, 0.2 * pixels, 0.2 * pixels, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        padded = cv2.resize(padded, (0.6 * pixels, 0.6 * pixels))
+        padded = cv2.copyMakeBorder(padded, 0.2 * pixels, 0.2 * pixels, 0.2 * pixels, 0.2 * pixels, cv2.BORDER_CONSTANT, value=[0, 0, 0])
         padded = ~padded
         padded = padded.astype("float32") / 255.0
         padded = np.expand_dims(padded, axis=-1)
