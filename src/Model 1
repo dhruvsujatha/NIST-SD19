@@ -8,8 +8,8 @@ import cv2
 from imutils.contours import sort_contours
 import imutils
 
-train_data_points = 900
-test_data_points = 171
+train_data_points = 800
+test_data_points = 216
 total_data_points = train_data_points + test_data_points
 pixels = 50
 bins = 62
@@ -17,7 +17,7 @@ mid_layer = 750
 training_iters = 10
 learning_rate = 1e-3
 batch_size = 512
-num_epochs = 1
+num_epochs = 3
 
 
 class LearningRateReducerCb(tf.keras.callbacks.Callback):
@@ -30,7 +30,7 @@ class LearningRateReducerCb(tf.keras.callbacks.Callback):
 
 def convert_to_char(value):
     if -1 < value < 10:
-        return int(value)
+        return chr(int(value))
     elif 9 < value < 36:
         return chr(int(value + 55))
     elif 35 < value < 62:
@@ -75,8 +75,8 @@ for i in range(bins):
     to_add = i * np.ones(test_data_points)
     test_labels = np.append(test_labels, to_add)
 
-training_data, training_labels = sklearn.utils.shuffle(training_data, training_labels)
-test_data, test_labels = sklearn.utils.shuffle(test_data, test_labels)
+# training_data, training_labels = sklearn.utils.shuffle(training_data, training_labels)
+# test_data, test_labels = sklearn.utils.shuffle(test_data, test_labels)
 
 training_data = training_data / 255.0
 test_data = test_data / 255.0
