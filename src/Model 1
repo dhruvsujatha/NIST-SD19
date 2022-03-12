@@ -1,5 +1,3 @@
-from tensorflow import keras
-import sklearn as sklearn
 from PIL import Image as im
 import tensorflow as tf
 from tensorflow.keras import datasets, layers, Sequential, models
@@ -15,9 +13,9 @@ pixels = 50
 bins = 62
 mid_layer = 750
 training_iters = 10
-learning_rate = 1e-3
+learning_rate = 2e-3
 batch_size = 512
-num_epochs = 3
+num_epochs = 1
 
 
 class LearningRateReducerCb(tf.keras.callbacks.Callback):
@@ -148,7 +146,8 @@ for c in cnts:
         padded = cv2.copyMakeBorder(thresh, top=dY, bottom=dY,
                                     left=dX, right=dX, borderType=cv2.BORDER_CONSTANT,
                                     value=(0, 0, 0))
-        padded = cv2.resize(padded, (0.6 * pixels, 0.6 * pixels))
+        new_size = (0.6 * pixels, 0.6 * pixels)
+        padded = cv2.resize(padded, new_size)
         padded = cv2.copyMakeBorder(padded, 0.2 * pixels, 0.2 * pixels, 0.2 * pixels, 0.2 * pixels, cv2.BORDER_CONSTANT, value=[0, 0, 0])
         padded = ~padded
         padded = padded.astype("float32") / 255.0
@@ -163,29 +162,3 @@ for c in cnts:
         chars = chars + convert_to_char(np.argmax(predictions))
 
 print(chars)
-# for idx, i in enumerate(model.layers):
-#     if isinstance(i, layers.Conv2D) or isinstance(i, layers.Dense):
-#         weights = i.get_weights()[0]
-#         biases = i.get_weights()[1]
-#         weights = weights.flatten()
-#         biases = biases.flatten()
-#         print("weights: ", weights.shape)
-#         print("biases: ", biases.shape)
-#         wt.write(','.join(map(str, weights.tolist()))+"\n")
-#         bs.write(','.join(map(str, biases.tolist()))+"\n")
-
-# New method starts
-
-# model = keras.Sequential([
-#     keras.layers.Flatten(input_shape=(pixels, pixels)),
-#     keras.layers.Dense(mid_layer, activation='relu'),
-#     keras.layers.Dense(bins, activation='softmax')
-# ])
-#
-# model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.01), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-#
-# history = model.fit(training_data, training_labels, epochs=10,
-#                     validation_data=(test_data, test_labels))
-#
-# test_loss, test_acc = model.evaluate(test_data, test_labels, verbose=2)
-# print(str(test_acc * 100) + "  %")
