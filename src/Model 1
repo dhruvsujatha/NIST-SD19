@@ -78,9 +78,6 @@ for i in range(bins):
     to_add = i * np.ones(test_data_points)
     test_labels = np.append(test_labels, to_add)
 
-# training_data, training_labels = sklearn.utils.shuffle(training_data, training_labels)
-# test_data, test_labels = sklearn.utils.shuffle(test_data, test_labels)
-
 training_data = training_data / 255.0
 test_data = test_data / 255.0
 
@@ -107,8 +104,7 @@ history = model.fit(training_data, training_labels, callbacks=[LearningRateReduc
 test_loss, test_acc = model.evaluate(test_data, test_labels, verbose=2)
 print("Accuracy = " + str(np.round(test_acc * 100, 3)) + " %")
 
-weights = model.get_weights()
-
+# weights = model.get_weights()
 # wt = open('C:/NN/NIST SD 19/Weights, Biases/weights.csv', 'w')
 # bs = open('C:/NN/NIST SD 19/Weights, Biases/biases.csv', 'w')
 
