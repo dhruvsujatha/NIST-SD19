@@ -16,6 +16,5 @@ print(np.shape(test_image))
 print(np.shape(test_image[:, 0:30]))
 
 for i in range(0, math.ceil(pixels * (np.shape(test_image)[1] / np.shape(test_image)[0])) - pixels, 3):
-    print(i)
     img.fromarray(test_image[:, i:(i + pixels)]).show()
     print(np.shape(test_image[:, i:(i + pixels)]))
