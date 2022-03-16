@@ -34,7 +34,7 @@ def convert_to_char(value):
     elif 35 < value < 62:
         return chr(int(value + 61))
     else:
-        return '*'
+        return 'Invalid input for convert_to_char()'
 
 
 images = []
